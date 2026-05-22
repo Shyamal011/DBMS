@@ -11,6 +11,13 @@ exports.addCandidate = (req, res) => {
     manifesto
   } = req.body;
 
+  // VALIDATION
+  if (!election_id || !candidate_name) {
+    return res.status(400).json({
+      message: "Election and Candidate Name are required"
+    });
+  }
+
   const sql = `
     INSERT INTO candidates
     (election_id, candidate_name, party_name, manifesto)
@@ -28,7 +35,12 @@ exports.addCandidate = (req, res) => {
     (err, result) => {
 
       if (err) {
-        return res.status(500).json(err);
+        console.log(err);
+
+        return res.status(500).json({
+          message: "Database Error",
+          error: err
+        });
       }
 
       res.status(201).json({
@@ -40,6 +52,25 @@ exports.addCandidate = (req, res) => {
 
 };
 
+
+// GET ALL CANDIDATES
+exports.getAllCandidates = (req, res) => {
+
+  const sql = `
+    SELECT * FROM candidates
+  `;
+
+  db.query(sql, (err, result) => {
+
+    if (err) {
+      return res.status(500).json(err);
+    }
+
+    res.status(200).json(result);
+
+  });
+
+};
 
 
 // GET CANDIDATES BY ELECTION
@@ -63,7 +94,6 @@ exports.getCandidatesByElection = (req, res) => {
   });
 
 };
-
 
 
 // DELETE CANDIDATE

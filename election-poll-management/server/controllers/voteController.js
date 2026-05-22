@@ -28,10 +28,12 @@ exports.castVote = (req, res) => {
       // ALREADY VOTED
       if (result.length > 0) {
         return res.status(400).json({
-          message: "User has already voted in this election"
+          message:
+            "User has already voted in this election"
         });
       }
 
+      // VALIDATE CANDIDATE
       const validateCandidateSql = `
         SELECT * FROM candidates
         WHERE candidate_id=? AND election_id=?
@@ -42,34 +44,39 @@ exports.castVote = (req, res) => {
         [candidate_id, election_id],
         (err, candidateResult) => {
 
-          if (candidateResult.length === 0) {
-            return res.status(400).json({
-              message: "Candidate does not belong to this election"
-            });
-          }
-
-          // continue vote insertion here
-      });
-
-      // INSERT VOTE
-      const voteSql = `
-        INSERT INTO votes
-        (user_id, election_id, candidate_id)
-        VALUES (?, ?, ?)
-      `;
-
-      db.query(
-        voteSql,
-        [user_id, election_id, candidate_id],
-        (err, result) => {
-
           if (err) {
             return res.status(500).json(err);
           }
 
-          res.status(201).json({
-            message: "Vote Cast Successfully"
-          });
+          if (candidateResult.length === 0) {
+            return res.status(400).json({
+              message:
+                "Candidate does not belong to this election"
+            });
+          }
+
+          // INSERT VOTE
+          const voteSql = `
+            INSERT INTO votes
+            (user_id, election_id, candidate_id)
+            VALUES (?, ?, ?)
+          `;
+
+          db.query(
+            voteSql,
+            [user_id, election_id, candidate_id],
+            (err, result) => {
+
+              if (err) {
+                return res.status(500).json(err);
+              }
+
+              res.status(201).json({
+                message: "Vote Cast Successfully"
+              });
+
+            }
+          );
 
         }
       );
@@ -80,8 +87,7 @@ exports.castVote = (req, res) => {
 };
 
 
-
-// GET ELECTION RESULTS
+// GET RESULTS
 exports.getResults = (req, res) => {
 
   const electionId = req.params.electionId;

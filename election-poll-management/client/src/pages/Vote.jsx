@@ -51,10 +51,21 @@ function Vote() {
 
     try {
 
+      // VALIDATION
+      if (!selectedElection) {
+        alert("Please select an election");
+        return;
+      }
+
+      if (!user) {
+        alert("Please login first");
+        return;
+      }
+
       const response = await axios.post(
         "http://localhost:5000/api/votes",
         {
-          user_id: 1,
+          user_id: user.user_id,
           election_id: selectedElection,
           candidate_id: candidateId
         }
@@ -63,12 +74,14 @@ function Vote() {
       alert(response.data.message);
 
     } catch (error) {
-        console.log(error.response);
-        alert(
-            error.response?.data?.message ||
-            error.message ||
-            "Voting Failed"
-        );
+
+      console.log(error);
+
+      alert(
+        error.response?.data?.message ||
+        error.message ||
+        "Voting Failed"
+      );
     }
   };
 
@@ -77,13 +90,6 @@ function Vote() {
   }, []);
 
   return (
-    candidates.length === 0 ? (
-
-      <div className="text-gray-500 text-xl">
-        No Results Available
-      </div>
-
-    ) : (
 
     <div className="max-w-7xl mx-auto p-10">
 
@@ -95,6 +101,7 @@ function Vote() {
       <div className="mb-10">
 
         <select
+          value={selectedElection}
           className="border border-gray-300 p-3 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-400 w-[300px]"
           onChange={(e) => {
 
@@ -124,46 +131,55 @@ function Vote() {
 
       </div>
 
-      {/* CANDIDATES */}
-      <div className="grid grid-cols-2 gap-6">
+      {/* NO CANDIDATES */}
+      {selectedElection && candidates.length === 0 ? (
 
-        {candidates.map((candidate) => (
+        <div className="text-gray-500 text-xl">
+          No Candidates Available
+        </div>
 
-          <div
-            key={candidate.candidate_id}
-            className="bg-white/80 backdrop-blur-md shadow-xl rounded-2xl p-6 border border-white/30 hover:scale-[1.02] transition"
-          >
+      ) : (
 
-            <h2 className="text-2xl font-bold text-blue-600">
-              {candidate.candidate_name}
-            </h2>
+        <div className="grid grid-cols-2 gap-6">
 
-            <p className="mt-3 text-gray-600">
-              Party: {candidate.party_name}
-            </p>
+          {candidates.map((candidate) => (
 
-            <p className="mt-3">
-              {candidate.manifesto}
-            </p>
-
-            <button
-              onClick={() =>
-                castVote(candidate.candidate_id)
-              }
-              className="mt-5 bg-gradient-to-r from-green-500 to-green-700 text-white px-6 py-2 rounded hover:bg-green-700"
+            <div
+              key={candidate.candidate_id}
+              className="bg-white/80 backdrop-blur-md shadow-xl rounded-2xl p-6 border border-white/30 hover:scale-[1.02] transition"
             >
-              Vote
-            </button>
 
-          </div>
+              <h2 className="text-2xl font-bold text-blue-600">
+                {candidate.candidate_name}
+              </h2>
 
-        ))}
+              <p className="mt-3 text-gray-600">
+                Party: {candidate.party_name}
+              </p>
 
-      </div>
+              <p className="mt-3">
+                {candidate.manifesto}
+              </p>
+
+              <button
+                onClick={() =>
+                  castVote(candidate.candidate_id)
+                }
+                className="mt-5 bg-gradient-to-r from-green-500 to-green-700 text-white px-6 py-2 rounded hover:bg-green-700"
+              >
+                Vote
+              </button>
+
+            </div>
+
+          ))}
+
+        </div>
+
+      )}
 
     </div>
-  )
-)
+  );
 }
 
 export default Vote;
